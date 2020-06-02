@@ -29,7 +29,12 @@ const router = new VueRouter({
     router
 })
 export default class App extends Vue {
-    rootUrl = '/';
+    defaultRoute = 'relics';
+
+    constructor() {
+        super();
+        router.push(this.defaultRoute);
+    }
 }
 </script>
 

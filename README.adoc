@@ -2,7 +2,7 @@
 
 A set of utility components for warframe
 
-Today on the grill: 
+Today on the grill:
 
 * An affinity tracker to keep track on what you master or not, with a powerful wishlist
 * A relics tracker to optimize the use of void traces and maximize the platinium chance on the market
