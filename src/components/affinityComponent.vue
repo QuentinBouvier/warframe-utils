@@ -59,6 +59,44 @@ export default class AffinityComponent extends Vue {
   items: Items;
   masteredItems: string[] = [];
   options: AffinityComponentOptions;
+  activeCategories = [
+    {
+      name: 'Warframes',
+      label: 'Warframes'
+    },
+    {
+      name: 'Primary',
+      label: 'Primary'
+    },
+    {
+      name: 'Secondary',
+      label: 'Secondary'
+    },
+    {
+      name: 'Melee',
+      label: 'Melee'
+    },
+    {
+      name: 'Archwing',
+      label: 'Archwing'
+    },
+    {
+      name: 'Arch-Gun',
+      label: 'Arch-Gun'
+    },
+    {
+      name: 'Arch-Melee',
+      label: 'Arch-Melee'
+    },
+    {
+      name: 'Sentinels',
+      label: 'Sentinels'
+    },
+    {
+      name: 'Pets',
+      label: 'Pets'
+    },
+  ];
 
   constructor() {
     super();
@@ -85,47 +123,6 @@ export default class AffinityComponent extends Vue {
         x => this.masteredItems.indexOf(x.uniqueName) < 0
       );
     else return this.items;
-  }
-
-  get activeCategories() {
-    return [
-      {
-        name: 'Warframes',
-        label: 'Warframes'
-      },
-      {
-        name: 'Primary',
-        label: 'Primary'
-      },
-      {
-        name: 'Secondary',
-        label: 'Secondary'
-      },
-      {
-        name: 'Melee',
-        label: 'Melee'
-      },
-      {
-        name: 'Archwing',
-        label: 'Archwing'
-      },
-      {
-        name: 'Arch-Gun',
-        label: 'Arch-Gun'
-      },
-      {
-        name: 'Arch-Melee',
-        label: 'Arch-Melee'
-      },
-      {
-        name: 'Sentinels',
-        label: 'Sentinels'
-      },
-      {
-        name: 'Pets',
-        label: 'Pets'
-      },
-    ]
   }
 
   updateItemList() {
