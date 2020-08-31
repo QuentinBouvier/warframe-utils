@@ -1,33 +1,41 @@
+<!--suppress HtmlFormInputWithoutLabel -->
 <template>
   <div class="container component-root content" style="overflow-y: auto">
-    <select name="relicType" v-model="type" @change="updateActiveRelic()">
-      <option v-for="t in allTypes" :key="t" :value="t">{{t}}</option>
-    </select>
     <table class="table is-bordered is-stripped is-hoverable">
       <thead>
-        <tr>
-          <th>{{type}}</th>
-          <th v-for="x in letters" :key="x">{{x}}</th>
-        </tr>
+      <tr>
+        <th>
+          <select class="has-text-centered has-text-weight-bold" name="relicType" v-model="type"
+                  @change="updateActiveRelic()">
+            <option v-for="t in allTypes" :key="t" :value="t">{{ t }}</option>
+          </select></th>
+        <th v-for="x in letters" :key="x">{{ x }}</th>
+      </tr>
       </thead>
       <tbody>
-        <tr v-for="y in numerals" :key="y">
-          <th class="has-text-centered">{{y}}</th>
-          <td
+      <tr v-for="y in numerals" :key="y">
+        <th class="has-text-centered">{{ y }}</th>
+        <td
             v-for="x in letters"
             :key="x"
             class="is-paddingless"
-            :class="{ 'has-background-black': !isRelicExist(x, y) }"
-          >
-            <input
+            :class="{
+              'has-background-black': !isRelicExist(x, y),
+              'vaulted': isRelicVaulted(x, y),
+              'selected': isRelicSelected(x, y)
+            }"
+            @click.ctrl="selectRelict(x, y)"
+        >
+          <input
               v-if="isRelicExist(x, y)"
               type="text"
               class="is-size-5"
               maxlength="3"
-              oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
-            />
-          </td>
-        </tr>
+              :value="relicCount[type][x][y]"
+              @input="onRelicCellInput(type,x,y, $event)"
+          />
+        </td>
+      </tr>
       </tbody>
     </table>
   </div>
@@ -36,8 +44,8 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-import Items from "warframe-items";
-import { filter, map, uniq, find } from "lodash";
+import uniq from "lodash/uniq";
+import RelicsService, {Relic} from "../service/RelicsService";
 
 @Component
 export default class RelicsComponent extends Vue {
@@ -48,59 +56,96 @@ export default class RelicsComponent extends Vue {
   numerals: string[] = [];
   filterByType: Relic[] = [];
   relicCount: any = {};
+  relicsService: RelicsService = new RelicsService();
+  selectedRelic: SelectedRelic = { letter: '', numeral: '' };
+
+  constructor() {
+    super();
+  }
+
+  onRelicCellInput(type: string, letter: string, numeral: string, e: Event) {
+    const target = <HTMLInputElement>e.target;
+    target.value = target.value.replace(/[^1-9.]/g, '').replace(/(\..*)\./g, '$1');
+    if (target.value.length > 0) {
+      this.relicCount[type][letter][numeral] = target.value;
+    } else if (target.value.length === 0 || target.value === '0') {
+      this.relicCount[type][letter][numeral] = null;
+    }
+    this.save();
+  }
+
+  save() {
+    localStorage.setItem('relics', JSON.stringify(this.relicCount));
+  }
 
   created() {
-    let relicsRaw = new Items({ category: ["Relics"] });
-    relicsRaw = filter(relicsRaw, x => x.name.includes("Intact"));
-    this.relics = relicsRaw.map(x => {
-      const splitName = x.name.split(" ");
-      return {
-        uniqueName: x.uniqueName,
-        name: x.name,
-        type: splitName[0],
-        letter: splitName[1].substring(0, 1),
-        numeral: splitName[1].substring(1)
-      };
-    });
+    this.relics = this.relicsService.relics;
     this.updateActiveRelic();
-    this.initRelicCount();
   }
 
   initRelicCount() {
-    for (let x in this.letters) {
-      for (let y in this.numerals) {
-        if(this.isRelicExist(x,y)) {
-          if (!this.relicCount[x]) this.relicCount[x] = {};
-          this.relicCount[x][y] = 0;
+    // relicCount have the shape of
+    //  "type": {
+    //    "letter": {
+    //      "numeral": count,
+    //      "numeral": count,
+    //    },
+    //  },
+
+    const loadedRelics = localStorage.getItem('relics');
+    if (loadedRelics != null) {
+      this.relicCount = JSON.parse(loadedRelics);
+    }
+    const r = this.type;
+    if (!this.relicCount[r]) {
+      this.relicCount[r] = {};
+      for (let x of this.letters) {
+        for (let y of this.numerals) {
+          if (this.isRelicExist(x, y)) {
+            if (!this.relicCount[r][x]) this.relicCount[r][x] = {};
+            this.relicCount[r][x][y] = null;
+          }
         }
       }
     }
   }
 
-  isRelicExist(letter: string, numeral: string) {
+  isRelicExist(letter: string, numeral: string): boolean {
     return (
-      find(
-        this.filterByType,
-        x => x.letter === letter && x.numeral === numeral
-      ) !== undefined
+        this.filterByType.find(
+            x => x.letter === letter && x.numeral === numeral
+        ) !== undefined
     );
+  }
+
+  isRelicVaulted(letter: string, numeral: string): boolean {
+    return (
+        this.filterByType.find(
+            x => x.letter === letter && x.numeral === numeral
+        )?.vaulted || false
+    );
+  }
+
+  isRelicSelected(letter: string, numeral: string): boolean {
+    return this.selectedRelic.letter === letter && this.selectedRelic.numeral === numeral;
+  }
+
+  selectRelict(letter: string, numeral: string) {
+    if (this.isRelicSelected(letter, numeral)) {
+      this.selectedRelic = { letter: '', numeral: '' };
+    } else {
+      this.selectedRelic = {letter, numeral};
+    }
   }
 
   updateActiveRelic() {
-    this.filterByType = filter(this.relics, x => x.type === this.type);
-    this.letters = uniq(map(this.filterByType, x => x.letter)).sort();
-    this.numerals = uniq(map(this.filterByType, x => x.numeral)).sort(
-      (a, b) => parseInt(a) - parseInt(b)
+    this.filterByType = this.relics.filter(x => x.type === this.type);
+    this.letters = uniq(this.filterByType.map(x => x.letter)).sort();
+    this.numerals = uniq(this.filterByType.map(x => x.numeral)).sort(
+        (a, b) => parseInt(a) - parseInt(b)
     );
+    this.initRelicCount();
   }
-}
-
-interface Relic {
-  uniqueName: string;
-  name: string;
-  type: string;
-  letter: string;
-  numeral: string;
 }
 
 enum RelicType {
@@ -110,22 +155,67 @@ enum RelicType {
   neo = "Neo"
   //requiem = 'Requiem',
 }
+
+interface SelectedRelic {
+  letter: string;
+  numeral: string;
+}
 </script>
 
 <style lang="scss">
-table tbody tr td {
-  position: relative;
-  width: 39px;
-
-  > input {
-    position: absolute;
-    height: 100%;
-    width: 39px;
-    display: block;
+table {
+  thead th:first-child {
     padding: 0;
-    border: none;
-    background-color: #0000;
-    text-align: center;
+
+    &::after {
+      content: '▼';
+      color: black;
+      position: absolute;
+      top: 25px;
+      left: 19px;
+      font-size: 0.5em;
+    }
+
+    > select {
+      margin: 0;
+      border: none;
+      appearance: none;
+      cursor: pointer;
+      width: 100%;
+      height: 40px;
+      display: block;
+      box-sizing: border-box;
+    }
+  }
+
+  tbody tr td {
+    position: relative;
+    width: 39px;
+
+    background-color: rgba(251, 238, 53, 0.34);
+
+    &.vaulted {
+      background-color: #0001;
+    }
+
+    &.selected {
+      background-color: red;
+    }
+
+    > input {
+      position: absolute;
+      height: 100%;
+      width: 39px;
+      display: block;
+      padding: 0;
+      border: none;
+      background-color: #0000;
+      text-align: center;
+
+      &:focus {
+        outline: none;
+      }
+    }
   }
 }
 </style>

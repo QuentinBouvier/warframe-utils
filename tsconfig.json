@@ -2,6 +2,9 @@
     "compilerOptions": {
         "module": "es2015",
         "target": "es5",
+        "lib": [
+            "es2019"
+        ],
         "strict": true,
         "moduleResolution": "node",
         "outDir": "./dist",
