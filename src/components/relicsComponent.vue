@@ -136,10 +136,14 @@ export default class RelicsComponent extends Vue {
 
   selectRelict(letter: string, numeral: string) {
     if (this.isRelicSelected(letter, numeral)) {
-      this.selectedRelic = { letter: '', numeral: '' };
+      this.deselectRelic()
     } else {
       this.selectedRelic = { letter, numeral };
     }
+  }
+
+  deselectRelic() {
+    this.selectedRelic = { letter: '', numeral: '' };
   }
 
   get activeRelic(): Relic | undefined {
@@ -147,6 +151,7 @@ export default class RelicsComponent extends Vue {
   }
 
   updateActiveRelic() {
+    this.deselectRelic();
     this.filterByType = this.relics.filter(x => x.type === this.type);
     this.letters = uniq(this.filterByType.map(x => x.letter)).sort();
     this.numerals = uniq(this.filterByType.map(x => x.numeral)).sort(
