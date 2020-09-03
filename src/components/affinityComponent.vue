@@ -13,7 +13,7 @@
 
           <div class="field">
             <div class="control">
-              <label for="itemLists" class="label has-text-light">Item lists</label>
+              <label for="itemsLists" class="label has-text-light">Item lists</label>
               <select id="itemsLists" multiple v-bind:size="activeCategories.length" v-model="options.items" @change="updateItemList()">
                 <option v-for="category in activeCategories" v-bind:key="category.name" v-bind:value="category.name">{{category.label}}</option>
               </select>
@@ -50,15 +50,14 @@
 <script lang="ts">
 import Vue from "vue";
 import Component from "vue-class-component";
-import { Prop } from "vue-property-decorator";
 import Items, { Item, Category } from "warframe-items";
 import { filter } from "lodash";
 
 @Component
 export default class AffinityComponent extends Vue {
-  items: Items;
+  items: Items = null;
   masteredItems: string[] = [];
-  options: AffinityComponentOptions;
+  options: AffinityComponentOptions = null;
   activeCategories = [
     {
       name: 'Warframes',
@@ -100,6 +99,9 @@ export default class AffinityComponent extends Vue {
 
   constructor() {
     super();
+  }
+
+  created() {
     this.options = { visible: { options: true }, displayMastered: true, items: [ 'Primary' ] };
     this.items = new Items({ category: this.options.items });
   }
@@ -130,7 +132,7 @@ export default class AffinityComponent extends Vue {
     this.save();
   }
 
-  toggleMastered(item: Item): void {
+  toggleMastered(item: Item) {
     const index: number = this.masteredItems.indexOf(item.uniqueName);
     if (index < 0) {
       this.masteredItems.push(item.uniqueName);
@@ -144,7 +146,7 @@ export default class AffinityComponent extends Vue {
     return this.masteredItems.indexOf(itemName) >= 0;
   }
 
-  shrink(target: "options"): void {
+  shrink(target: "options") {
     this.options.visible[target] = !this.options.visible[target];
     this.save();
   }
@@ -177,7 +179,7 @@ interface AffinityComponentOptions {
   position: relative;
 
   &.shrunk {
-    width: 0px !important;
+    width: 0 !important;
   }
 
   > .options-body {
@@ -190,10 +192,9 @@ interface AffinityComponentOptions {
 
   .pannel-button {
     position: absolute;
-    top: 0px;
-    right: 0px;
+    top: 0;
+    right: 0;
     width: 10px;
-    display: block;
     background-color: #6660;
     display: flex;
     align-items: center;

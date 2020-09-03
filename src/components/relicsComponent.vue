@@ -1,20 +1,20 @@
 <!--suppress HtmlFormInputWithoutLabel -->
 <template>
   <div class="container component-root content" style="overflow-y: auto">
-    <table class="table is-bordered is-stripped is-hoverable">
+    <table class="table is-bordered is-stripped is-hoverable relic-table">
       <thead>
       <tr>
         <th>
           <select class="has-text-centered has-text-weight-bold" name="relicType" v-model="type"
                   @change="updateActiveRelic()">
-            <option v-for="t in allTypes" :key="t" :value="t">{{ t }}</option>
+            <option v-for="t in allTypes" :key="t" :value="t">{{t}}</option>
           </select></th>
-        <th v-for="x in letters" :key="x">{{ x }}</th>
+        <th v-for="x in letters" :key="x">{{x}}</th>
       </tr>
       </thead>
       <tbody>
       <tr v-for="y in numerals" :key="y">
-        <th class="has-text-centered">{{ y }}</th>
+        <th class="has-text-centered">{{y}}</th>
         <td
             v-for="x in letters"
             :key="x"
@@ -38,6 +38,7 @@
       </tr>
       </tbody>
     </table>
+    <relic-card-component v-if="activeRelic" v-bind:relic="activeRelic"></relic-card-component>
   </div>
 </template>
 
@@ -45,9 +46,12 @@
 import Vue from "vue";
 import Component from "vue-class-component";
 import uniq from "lodash/uniq";
-import RelicsService, {Relic} from "../service/RelicsService";
+import RelicsService, { Relic } from "../service/RelicsService";
+import RelicCardComponent from "./Relics/RelicCardComponent.vue";
 
-@Component
+@Component({
+  components: { RelicCardComponent }
+})
 export default class RelicsComponent extends Vue {
   relics: Relic[] = [];
   type: RelicType = RelicType.axi;
@@ -63,6 +67,11 @@ export default class RelicsComponent extends Vue {
     super();
   }
 
+  created() {
+    this.relics = this.relicsService.relics;
+    this.updateActiveRelic();
+  }
+
   onRelicCellInput(type: string, letter: string, numeral: string, e: Event) {
     const target = <HTMLInputElement>e.target;
     target.value = target.value.replace(/[^1-9.]/g, '').replace(/(\..*)\./g, '$1');
@@ -76,11 +85,6 @@ export default class RelicsComponent extends Vue {
 
   save() {
     localStorage.setItem('relics', JSON.stringify(this.relicCount));
-  }
-
-  created() {
-    this.relics = this.relicsService.relics;
-    this.updateActiveRelic();
   }
 
   initRelicCount() {
@@ -134,8 +138,12 @@ export default class RelicsComponent extends Vue {
     if (this.isRelicSelected(letter, numeral)) {
       this.selectedRelic = { letter: '', numeral: '' };
     } else {
-      this.selectedRelic = {letter, numeral};
+      this.selectedRelic = { letter, numeral };
     }
+  }
+
+  get activeRelic(): Relic | undefined {
+    return this.filterByType.find(x => x.letter === this.selectedRelic.letter && x.numeral === this.selectedRelic.numeral);
   }
 
   updateActiveRelic() {
@@ -163,7 +171,7 @@ interface SelectedRelic {
 </script>
 
 <style lang="scss">
-table {
+table.relic-table {
   thead th:first-child {
     padding: 0;
 
