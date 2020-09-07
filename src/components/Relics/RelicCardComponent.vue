@@ -33,12 +33,18 @@
               <span v-else>{{drop.parentName}} {{drop.name}}</span>
             </td>
             <td class="has-text-centered">
-              <span v-if="!isNil(drop.avgPrice90d)">{{drop.avgPrice90d.toFixed(drop.avgPrice90d % 1 && 1)}}<i v-if="drop.avgPrice90d > 0" class="icon-platinum ml-1"></i></span>
-              <div v-else class="loader-cell"><loader dark="true"></loader></div>
+              <span v-if="!isNil(drop.avgPrice90d)">{{drop.avgPrice90d.toFixed(1)}}<i v-if="drop.avgPrice90d > 0"
+                                                                                      class="icon-platinum ml-1"></i></span>
+              <div v-else class="loader-cell">
+                <loader dark="true"></loader>
+              </div>
             </td>
             <td class="has-text-centered">
-              <span v-if="!isNil(drop.avgPrice48h)">{{drop.avgPrice48h.toFixed(drop.avgPrice48h % 1 && 1)}}<i v-if="drop.avgPrice90d > 0" class="icon-platinum ml-1"></i></span>
-              <div v-else class="loader-cell"><loader dark="true"></loader></div>
+              <span v-if="!isNil(drop.avgPrice48h)">{{drop.avgPrice48h.toFixed(1)}}<i v-if="drop.avgPrice90d > 0"
+                                                                                      class="icon-platinum ml-1"></i></span>
+              <div v-else class="loader-cell">
+                <loader dark="true"></loader>
+              </div>
             </td>
           </tr>
           </tbody>
@@ -87,21 +93,20 @@ export default class RelicCardComponent extends Vue {
     this.sortedDrops = this.relic.drops.sort((a, b) => b.chance - a.chance);
   }
 
-  async queryMarket() {
+  queryMarket() {
     for (const drop of this.sortedDrops) {
-      try {
-        if (!drop.name.toLowerCase().includes('forma')) {
-          if (!drop.avgPrice48h || !drop.avgPrice90d) {
-            const dropPrice = await this.market.queryPrices(Market.componentMarketName(drop.parentName, drop.name));
+      if (!drop.name.toLowerCase().includes('forma')) {
+        this.market.queryPrices(Market.componentMarketName(drop.parentName, drop.name))
+          .then(dropPrice => {
             this.$set(drop, 'avgPrice48h', dropPrice.payload.statistics_live['48hours'].reduce((t, x, i, { length }) => t + x.avg_price / length, 0));
             this.$set(drop, 'avgPrice90d', dropPrice.payload.statistics_live['90days'].reduce((t, x, i, { length }) => t + x.avg_price / length, 0));
-          }
-        } else {
-          this.$set(drop, 'avgPrice48h', 0);
-          this.$set(drop, 'avgPrice90d', 0);
-        }
-      } catch (err) {
-        console.error('Unable to join the warframe market api.', err);
+          })
+          .catch(err => {
+            console.error('Unable to join the warframe market api.', err);
+            this.$set(drop, 'avgPrice48h', 0);
+            this.$set(drop, 'avgPrice90d', 0);
+          })
+      } else {
         this.$set(drop, 'avgPrice48h', 0);
         this.$set(drop, 'avgPrice90d', 0);
       }
