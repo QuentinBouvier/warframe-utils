@@ -48,11 +48,14 @@ import Component from "vue-class-component";
 import uniq from "lodash/uniq";
 import RelicsService, { Relic } from "../service/RelicsService";
 import RelicCardComponent from "./Relics/RelicCardComponent.vue";
+import { Inject } from "vue-property-decorator";
 
 @Component({
-  components: { RelicCardComponent }
+  components: { RelicCardComponent },
 })
 export default class RelicsComponent extends Vue {
+  @Inject('relicsService') readonly relicsService: RelicsService;
+
   relics: Relic[] = [];
   type: RelicType = RelicType.axi;
   allTypes = Object.values(RelicType);
@@ -60,7 +63,6 @@ export default class RelicsComponent extends Vue {
   numerals: string[] = [];
   filterByType: Relic[] = [];
   relicCount: any = {};
-  relicsService: RelicsService = new RelicsService();
   selectedRelic: SelectedRelic = { letter: '', numeral: '' };
 
   constructor() {
@@ -116,17 +118,17 @@ export default class RelicsComponent extends Vue {
 
   isRelicExist(letter: string, numeral: string): boolean {
     return (
-        this.filterByType.find(
-            x => x.letter === letter && x.numeral === numeral
-        ) !== undefined
+      this.filterByType.find(
+        x => x.letter === letter && x.numeral === numeral
+      ) !== undefined
     );
   }
 
   isRelicVaulted(letter: string, numeral: string): boolean {
     return (
-        this.filterByType.find(
-            x => x.letter === letter && x.numeral === numeral
-        )?.vaulted || false
+      this.filterByType.find(
+        x => x.letter === letter && x.numeral === numeral
+      )?.vaulted || false
     );
   }
 
@@ -155,7 +157,7 @@ export default class RelicsComponent extends Vue {
     this.filterByType = this.relics.filter(x => x.type === this.type);
     this.letters = uniq(this.filterByType.map(x => x.letter)).sort();
     this.numerals = uniq(this.filterByType.map(x => x.numeral)).sort(
-        (a, b) => parseInt(a) - parseInt(b)
+      (a, b) => parseInt(a) - parseInt(b)
     );
     this.initRelicCount();
   }

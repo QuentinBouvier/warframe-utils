@@ -90,4 +90,7 @@ export interface RelicDrop {
     parentImageName?: string;
     ducats?: number;
     wikiaUrl?: string;
+    avgPrice48h?: number;
+    avgPrice90d?: number;
+    lastMarketQuery?: Date;
 }

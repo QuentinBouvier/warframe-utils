@@ -1,7 +1,7 @@
 <template>
   <div class="container component-root">
     <div class="columns is-gapless">
-      <div class="column is-one-fifth options" v-bind:class="{ shrunk: !options.visible.options}">
+      <div class="column is-one-fifth options" :class="{ shrunk: !options.visible.options}">
         <div class="options-body" v-show="options.visible.options">
           <p class="title is-2">Options</p>
           <div class="field">
@@ -14,13 +14,13 @@
           <div class="field">
             <div class="control">
               <label for="itemsLists" class="label has-text-light">Item lists</label>
-              <select id="itemsLists" multiple v-bind:size="activeCategories.length" v-model="options.items" @change="updateItemList()">
-                <option v-for="category in activeCategories" v-bind:key="category.name" v-bind:value="category.name">{{category.label}}</option>
+              <select id="itemsLists" multiple :size="activeCategories.length" v-model="options.items" @change="updateItemList()">
+                <option v-for="category in activeCategories" :key="category.name" :value="category.name">{{category.label}}</option>
               </select>
             </div>
           </div>
         </div>
-        <div class="pannel-button has-text-light" v-bind:class="{ shrunk: !options.visible.options}" v-on:click="shrink('options')"></div>
+        <div class="pannel-button has-text-light" :class="{ shrunk: !options.visible.options}" @click="shrink('options')"></div>
       </div>
       <div class="column">
         <div class="cards-container">
@@ -255,7 +255,7 @@ interface AffinityComponentOptions {
 }
 
 .icon-mastered::before {
-  content: url("../img/mastered.svg");
+  content: url("../img/icons/mastered.svg");
   display: block;
   width: 21px;
   top: 10px;
