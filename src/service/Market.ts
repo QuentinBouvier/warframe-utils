@@ -18,9 +18,16 @@ export default class Market {
   }
 
   private marketAxiosAdapter(adapter: AxiosAdapter): AxiosAdapter {
-    // const throttler = (config: AxiosRequestConfig): AxiosPromise => {
-    //
-    // };
+    const throttle = (adapter: AxiosAdapter, arg: AxiosRequestConfig): AxiosPromise => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          this.throttleFactor--;
+          resolve(adapter(arg));
+        }, this.throttleFactor * this.delay);
+        this.throttleFactor++;
+      });
+    };
+
     return (config: AxiosRequestConfig) => {
       const { url, params, paramsSerializer } = config;
       const index = Market.buildUrlIndex(url, params, paramsSerializer);
@@ -29,7 +36,7 @@ export default class Market {
       if (!this.isCached(url)) {
         const cachingRequest = (async () => {
           try {
-            return await adapter(config);
+            return await throttle(adapter, config);
           } catch (err) {
             if (this.cachedRequests[index]) delete this.cachedRequests[index];
             throw err;
